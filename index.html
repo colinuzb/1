@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IbrohimDev</title>
+    <link rel="icon" href="flag.png">
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Three.js for 3D graphics -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        /* Custom styles for 3D look and feel */
+        :root {
+            --color-primary: #4f46e5; /* Indigo-600 */
+        }
+
+        /* Default Dark Mode Styles (Black theme) */
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.5s, color 0.5s;
+            background-color: #111827; /* Dark Gray 900 */
+            color: #f3f4f6; /* Light Gray 100 */
+        }
+
+        /* Light Mode Overrides */
+        body.light {
+            background-color: #ffffff;
+            color: #1f2937; /* Dark Gray 800 */
+        }
+
+        .card {
+            background-color: #1f2937; /* Darker Card in Dark Mode */
+            transition: background-color 0.5s, box-shadow 0.5s;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+        }
+
+        .light .card {
+            background-color: #f9fafb; /* Lighter Card in Light Mode */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .button-primary {
+            background-color: var(--color-primary);
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .button-primary:hover {
+            transform: translateY(-2px);
+            background-color: #4338ca; /* Indigo-700 */
+        }
+
+        /* Responsive Layout for large screens: Navigation on left, Content on right */
+        @media (min-width: 1024px) {
+            #app-container {
+                display: grid;
+                grid-template-columns: 280px 1fr; /* Fixed sidebar, fluid content */
+                min-height: 100vh;
+            }
+        }
+
+        /* Three.js Canvas Styling */
+        #three-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.1; /* Subtle effect */
+        }
+
+        /* Content should always be above the 3D background */
+        #content-wrapper {
+            z-index: 10;
+            position: relative;
+        }
+
+    </style>
+</head>
+<body class="dark">
+
+    <div id="app-container" class="lg:grid lg:grid-cols-[280px_1fr] min-h-screen">
+
+        <!-- Sidebar Navigation (Navigates to the 6 'pages') -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out z-50 p-6 bg-gray-800 lg:bg-gray-800/80 light:bg-white light:lg:bg-white/80 backdrop-blur-sm lg:shadow-xl w-64 lg:w-full max-w-full">
+            <h1 class="text-3xl font-bold text-indigo-400 light:text-indigo-600 mb-8"><a href="https://t.me/codeasd">IbrohimDev</a> </h1>
+
+            <nav class="space-y-3">
+                <a href="#home" class="nav-link block p-3 rounded-xl text-gray-300 light:text-gray-700 hover:bg-indigo-600/50 light:hover:bg-indigo-100 transition duration-150 ease-in-out flex items-center space-x-3" data-view="home">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-10v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    <span>Home</span>
+                </a>
+                <a href="#korean" class="nav-link block p-3 rounded-xl text-gray-300 light:text-gray-700 hover:bg-indigo-600/50 light:hover:bg-indigo-100 transition duration-150 ease-in-out flex items-center space-x-3" data-view="korean">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.206 5 7.5 5 5.104 5 3.178 5.8 1.5 7.108V5.5c0-.621.523-1.127 1.166-1.127h1.668c.643 0 1.166.506 1.166 1.127v8.521A2.89 2.89 0 007.5 15a2.89 2.89 0 002.834-3.579M14.5 5c2.396 0 4.322 2.408 6 3.715h.5a.5.5 0 01.5.5v8.5a.5.5 0 01-.5.5H14.5a.5.5 0 01-.5-.5V5.5a.5.5 0 01.5-.5z"></path></svg>
+                    <span>Korean Books</span>
+                </a>
+                <a href="#english" class="nav-link block p-3 rounded-xl text-gray-300 light:text-gray-700 hover:bg-indigo-600/50 light:hover:bg-indigo-100 transition duration-150 ease-in-out flex items-center space-x-3" data-view="english">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.5 5c2.396 0 4.322 2.408 6 3.715h.5a.5.5 0 01.5.5v8.5a.5.5 0 01-.5.5H14.5a.5.5 0 01-.5-.5V5.5a.5.5 0 01.5-.5zM3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-10v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    <span>English Books</span>
+                </a>
+                <a href="#motivate" class="nav-link block p-3 rounded-xl text-gray-300 light:text-gray-700 hover:bg-indigo-600/50 light:hover:bg-indigo-100 transition duration-150 ease-in-out flex items-center space-x-3" data-view="motivate">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.103a2.44 2.44 0 00-3.342-.093l-4 4a2 2 0 01-3.342 0l-4-4a2.44 2.44 0 00-3.342.093l-.337.337a2.44 2.44 0 00-.093 3.342l4.4 4.4a2 2 0 010 3.342l-4.4 4.4a2.44 2.44 0 00.093 3.342l.337.337a2.44 2.44 0 003.342-.093l4-4a2 2 0 013.342 0l4 4a2.44 2.44 0 003.342.093l.337-.337a2.44 2.44 0 00.093-3.342l-4.4-4.4a2 2 0 010-3.342l4.4-4.4a2.44 2.44 0 00.093-3.342l-.337-.337z"></path></svg>
+                    <span>Motivate Books</span>
+                </a>
+                <a href="#vocabulary" class="nav-link block p-3 rounded-xl text-gray-300 light:text-gray-700 hover:bg-indigo-600/50 light:hover:bg-indigo-100 transition duration-150 ease-in-out flex items-center space-x-3" data-view="vocabulary">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.206 5 7.5 5 5.104 5 3.178 5.8 1.5 7.108V5.5c0-.621.523-1.127 1.166-1.127h1.668c.643 0 1.166.506 1.166 1.127v8.521A2.89 2.89 0 007.5 15a2.89 2.89 0 002.834-3.579M14.5 5c2.396 0 4.322 2.408 6 3.715h.5a.5.5 0 01.5.5v8.5a.5.5 0 01-.5.5H14.5a.5.5 0 01-.5-.5V5.5a.5.5 0 01.5-.5z"></path></svg>
+                    <span>Vocabulary Books</span>
+                </a>
+            </nav>
+
+            <div class="mt-8 pt-6 border-t border-gray-700 light:border-gray-200">
+                <a href="#login" class="nav-link button-primary w-full text-center block p-3 rounded-xl text-white font-semibold flex items-center justify-center space-x-2" data-view="login">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                    <span>Login / Register</span>
+                </a>
+
+            </div>
+        </aside>
+
+        <!-- Main Content Area (Right Side) -->
+        <main id="content-wrapper" class="flex-1 p-4 sm:p-8 lg:p-12 relative">
+
+            <!-- Mobile Menu Toggle -->
+            <button id="menu-toggle" class="lg:hidden fixed top-4 left-4 p-3 bg-indigo-600 rounded-full text-white z-50">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+
+            <!-- THREE.js Canvas Container - only visible on Home page for the 3D effect -->
+            <div id="three-canvas-container" class="absolute inset-0 overflow-hidden hidden">
+                <canvas id="three-canvas"></canvas>
+            </div>
+
+
+            <!-- Views Container -->
+            <div id="views-container" class="relative z-20">
+
+                <!-- 1. Home View -->
+                <section id="view-home" class="page-view space-y-8">
+                    <header class="text-center py-20">
+                        <h2 class="text-6xl font-extrabold text-indigo-400 light:text-indigo-700 tracking-tight">
+                            The 3D Modern Library Made By <a href="https://t.me/codeasd">IbrohimDev</a>
+                        </h2>
+                        <p class="mt-4 text-xl text-gray-400 light:text-gray-600 max-w-2xl mx-auto">
+                            Step into a new dimension of reading. Discover curated collections in a stunning, responsive interface.
+                        </p>
+                    </header>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                        <div class="card p-6 rounded-2xl">
+                            <h3 class="text-2xl font-semibold mb-2 text-indigo-400 light:text-indigo-700">Interesting Books</h3>
+                            <p class="text-gray-400 light:text-gray-600">Read it to improve your mind.</p>
+                        </div>
+                        <div class="card p-6 rounded-2xl">
+                            <h3 class="text-2xl font-semibold mb-2 text-indigo-400 light:text-indigo-700">Digital Downloads</h3>
+                            <p class="text-gray-400 light:text-gray-600">Download your favorite titles instantly.</p>
+                        </div>
+                        <div class="card p-6 rounded-2xl">
+                            <h3 class="text-2xl font-semibold mb-2 text-indigo-400 light:text-indigo-700">Responsive Design</h3>
+                            <p class="text-gray-400 light:text-gray-600">Perfect viewing on any device or screen.</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-12 text-center">
+                        <button onclick="changeView('korean')" class="button-primary px-8 py-3 text-lg rounded-full text-white font-medium">
+                            Explore Korean Collection
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Helper function to generate book cards -->
+                <script>
+                    const generateBookCard = (title, author, category, downloadLink) => `
+                        <div class="card p-6 rounded-xl space-y-4 hover:shadow-xl transform hover:scale-[1.02] transition duration-300">
+                            <div class="flex items-center space-x-4">
+                                <!-- Placeholder Book Cover SVG -->
+                                <div class="w-16 h-24 bg-indigo-500 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-md">
+                                    BOOK
+                                </div>
+                                <div>
+                                    <h4 class="text-xl font-bold">${title}</h4>
+                                    <p class="text-sm text-gray-400 light:text-gray-500">By ${author}</p>
+                                </div>
+                            </div>
+                            <p class="text-gray-300 light:text-gray-600 text-sm">A highly recommended read in the ${category} collection, covering essential topics.</p>
+                            <a href="${downloadLink}" download="${title.replace(/\s/g, '_')}.pdf"
+                                class="mt-4 button-primary inline-flex items-center space-x-2 px-4 py-2 text-sm rounded-lg text-white font-medium">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                <span>Download PDF</span>
+                            </a>
+
+                        </div>
+                    `;
+                </script>
+
+                <!-- 2. Korean Books View -->
+                <section id="view-korean" class="page-view hidden space-y-8">
+                    <h2 class="text-4xl font-bold text-indigo-400 light:text-indigo-700 border-b pb-4 border-gray-700 light:border-gray-200">Korean Book Collection</h2>
+                    <p class="text-gray-400 light:text-gray-600">A selection of popular Korean literature, language guides, and cultural studies.</p>
+                    <div id="korean-books-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Content injected via JS -->
+                    </div>
+                </section>
+
+                <!-- 3. English Books View -->
+                <section id="view-english" class="page-view hidden space-y-8">
+                    <h2 class="text-4xl font-bold text-indigo-400 light:text-indigo-700 border-b pb-4 border-gray-700 light:border-gray-200">English Book Collection</h2>
+                    <p class="text-gray-400 light:text-gray-600">Best-selling novels, non-fiction, and academic texts in English.</p>
+                    <div id="english-books-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Content injected via JS -->
+                    </div>
+                </section>
+
+                <!-- 4. Motivate Books View -->
+                <section id="view-motivate" class="page-view hidden space-y-8">
+                    <h2 class="text-4xl font-bold text-indigo-400 light:text-indigo-700 border-b pb-4 border-gray-700 light:border-gray-200">Motivate Books Collection</h2>
+                    <p class="text-gray-400 light:text-gray-600">The most inspirational and empowering self-help and motivational literature.</p>
+                    <div id="motivate-books-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Content injected via JS -->
+                    </div>
+                </section>
+
+                <!-- 5. Vocabulary Books View -->
+                <section id="view-vocabulary" class="page-view hidden space-y-8">
+                    <h2 class="text-4xl font-bold text-indigo-400 light:text-indigo-700 border-b pb-4 border-gray-700 light:border-gray-200">Vocabulary Books Collection</h2>
+                    <p class="text-gray-400 light:text-gray-600">Essential resources for expanding your English or Korean vocabulary.</p>
+                    <div id="vocabulary-books-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Content injected via JS -->
+                    </div>
+                </section>
+
+                <!-- 6. Login View -->
+                <section id="view-login" class="page-view hidden">
+                    <div class="max-w-md mx-auto card p-8 rounded-3xl mt-10">
+                        <h2 class="text-3xl font-bold mb-6 text-center text-indigo-400 light:text-indigo-700">Access Your Account</h2>
+
+                        <form onsubmit="event.preventDefault(); handleLogin();" class="space-y-6">
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-300 light:text-gray-700 mb-1">Email Address</label>
+                                <input type="email" id="email" required placeholder="name@example.com" class="w-full p-3 border border-gray-700 light:border-gray-300 rounded-lg bg-gray-900 light:bg-white text-gray-100 light:text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                            </div>
+                            <div>
+                                <label for="password" class="block text-sm font-medium text-gray-300 light:text-gray-700 mb-1">Password</label>
+                                <input type="password" id="password" required placeholder="Enter your password" class="w-full p-3 border border-gray-700 light:border-gray-300 rounded-lg bg-gray-900 light:bg-white text-gray-100 light:text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                            </div>
+                            <button type="submit" class="button-primary w-full p-3 rounded-lg text-white font-semibold">
+                                Log In
+                            </button>
+                            <p id="login-message" class="text-center text-sm text-red-400 light:text-red-500 hidden"></p>
+                        </form>
+
+                        <div class="mt-6 text-center text-sm">
+                            <p class="text-gray-400 light:text-gray-600">Don't have an account? <a href="#" class="text-indigo-400 light:text-indigo-600 hover:underline">Sign Up</a></p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- DATA SECTION ---
+        const bookData = {
+            korean: [
+                { title: "Korean Grammar in Use", author: "IbrohimDev", downloadLink: "https://t.me/ibrohimsem/76" },
+                { title: "Common Korean Adjectives", author: "IbrohimDev", downloadLink: "book/Korean_Common_Adjectives.pdf" },
+                { title: "Common Korean Nouns", author: "IbrohimDev", downloadLink: "book/Korean_Common_Nouns.pdf" },
+                { title: "The Korean Alphabet", author: "IbrohimDev", downloadLink: "book/korean_alphabet.pdf" },
+                { title: "Most 50 Verbs in Korean", author: "IbrohimDev", downloadLink: "book/Korean50CommonVerbs.pdf" },
+                { title: "Writing Practise in Korean With Answer", author: "IbrohimDev", downloadLink: "book/KoreanWritingPractiseAndAnswer.pdf" },
+                { title: "The Topik 2662 Words", author: "IbrohimDev", downloadLink: "book/topik-2662_words.pdf" },
+            ],
+            english: [
+                { title: "The Book Is Not Here", author: "IbrohimDev", downloadLink: "https://t.me/codeasd" },
+            ],
+            motivate: [
+                { title: "The Book Is Not Here", author: "IbrohimDev", downloadLink: "https://t.me/codeasd" },
+            ],
+            vocabulary: [
+                { title: "The Book Is Not Here", author: "IbrohimDev", downloadLink: "https://t.me/codeasd" },
+            ]
+        };
+
+        // --- GLOBAL STATE & DOM ELEMENTS ---
+        let currentView = 'home';
+        const body = document.body;
+        const viewsContainer = document.getElementById('views-container');
+        const sidebar = document.getElementById('sidebar');
+        const menuToggle = document.getElementById('menu-toggle');
+        const themeToggle = document.getElementById('theme-toggle');
+        const threeCanvasContainer = document.getElementById('three-canvas-container');
+
+        // --- VIEW RENDERING (ROUTING) ---
+
+        /** Changes the active view based on the hash or provided viewName */
+        const changeView = (viewName) => {
+            const views = document.querySelectorAll('.page-view');
+
+            // Hide all views
+            views.forEach(view => view.classList.add('hidden'));
+
+            // Show the requested view
+            const newView = document.getElementById(`view-${viewName}`);
+            if (newView) {
+                newView.classList.remove('hidden');
+                currentView = viewName;
+                window.location.hash = viewName;
+            } else {
+                // Default to home if view not found
+                document.getElementById('view-home').classList.remove('hidden');
+                currentView = 'home';
+                window.location.hash = 'home';
+            }
+
+            // Update 3D canvas visibility
+            if (currentView === 'home') {
+                threeCanvasContainer.classList.remove('hidden');
+            } else {
+                threeCanvasContainer.classList.add('hidden');
+            }
+
+            // Hide sidebar on mobile after navigation
+            if (window.innerWidth < 1024) {
+                sidebar.classList.add('-translate-x-full');
+            }
+
+            // Re-render book lists for the new view
+            renderBookLists();
+
+            // Update active navigation link
+            updateActiveNav(viewName);
+        };
+
+        /** Updates the visual state of the active navigation link */
+        const updateActiveNav = (viewName) => {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('bg-indigo-600', 'light:bg-indigo-200');
+                link.classList.add('hover:bg-indigo-600/50', 'light:hover:bg-indigo-100');
+
+                if (link.getAttribute('data-view') === viewName) {
+                    link.classList.add('bg-indigo-600', 'light:bg-indigo-200');
+                    link.classList.remove('hover:bg-indigo-600/50', 'light:hover:bg-indigo-100');
+                }
+            });
+        };
+
+        /** Renders the book cards for each category */
+        const renderBookLists = () => {
+            for (const category in bookData) {
+                const container = document.getElementById(`${category}-books-grid`);
+                if (container) {
+                    container.innerHTML = bookData[category].map(book =>
+                        generateBookCard(book.title, book.author, category.charAt(0).toUpperCase() + category.slice(1), book.downloadLink)
+                    ).join('');
+                }
+            }
+        };
+
+        // --- THEME TOGGLE LOGIC ---
+
+        /** Toggles between dark and light mode */
+        const toggleTheme = () => {
+            const isLight = body.classList.toggle('light');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            updateThemeToggleButton(isLight);
+
+            // Re-initialize 3D scene colors
+            if (typeof initThree === 'function' && currentView === 'home') {
+                 // Dispose existing scene and re-create to update colors
+                if (window.threeScene) {
+                    window.threeScene.dispose();
+                    window.threeRenderer.dispose();
+                }
+                initThree();
+            }
+        };
+
+        /** Updates the text and icons of the theme toggle button */
+        const updateThemeToggleButton = (isLight) => {
+            const sunIcon = document.getElementById('sun-icon');
+            const moonIcon = document.getElementById('moon-icon');
+            const themeText = document.getElementById('theme-text');
+
+            if (isLight) {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+                themeText.textContent = 'Switch to Dark Mode';
+            } else {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+                themeText.textContent = 'Switch to Light Mode';
+            }
+        };
+
+        /** Applies the stored theme on load */
+        const applyStoredTheme = () => {
+            const storedTheme = localStorage.getItem('theme') || 'dark'; // Default to dark
+            if (storedTheme === 'light') {
+                body.classList.add('light');
+                updateThemeToggleButton(true);
+            } else {
+                body.classList.remove('light');
+                updateThemeToggleButton(false);
+            }
+        };
+
+        // --- AUTH/LOGIN LOGIC ---
+
+        const handleLogin = () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const message = document.getElementById('login-message');
+
+            message.classList.remove('hidden', 'text-green-400', 'text-red-400', 'light:text-green-500', 'light:text-red-500');
+            message.classList.add('text-green-400', 'light:text-green-500');
+            message.textContent = `Success! User ${email} logged in (Mock Login).`;
+
+            setTimeout(() => {
+                message.classList.add('hidden');
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+                changeView('home'); // Redirect after successful mock login
+            }, 2000);
+        };
+
+        // --- EVENT LISTENERS ---
+
+        // Handle navigation clicks
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const viewName = link.getAttribute('data-view');
+                changeView(viewName);
+            });
+        });
+
+        // Handle URL hash changes (back/forward buttons)
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.replace('#', '');
+            changeView(hash || 'home');
+        });
+
+        // Theme Toggle Listener
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // Mobile Menu Toggle Listener
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+
+        // --- THREE.JS 3D SCENE SETUP (Modern Effect) ---
+
+        let scene, camera, renderer, bookMesh;
+        const initThree = () => {
+            // Get current theme colors
+            const isLightMode = body.classList.contains('light');
+            const bookColor = isLightMode ? 0x4f46e5 : 0x818cf8; // Indigo
+
+            const canvas = document.getElementById('three-canvas');
+            const container = document.getElementById('three-canvas-container');
+
+            // Set up scene
+            scene = new THREE.Scene();
+            window.threeScene = scene;
+
+            // Set up camera
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 2;
+
+            // Set up renderer
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+            window.threeRenderer = renderer;
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setClearColor(0x000000, 0); // Transparent background
+
+            // Create a 3D Book Shape (BoxGeometry)
+            const geometry = new THREE.BoxGeometry(1.0, 1.5, 0.2); // Proportions of a book
+            const material = new THREE.MeshLambertMaterial({ color: bookColor, wireframe: false, transparent: true, opacity: 0.8 });
+
+            // Use wireframe for a more 'digital' 3D look
+            const wireframeMaterial = new THREE.MeshBasicMaterial({
+                color: isLightMode ? 0x1f2937 : 0x1f2937, // Dark lines for contrast
+                wireframe: true,
+                transparent: true,
+                opacity: 0.2
+            });
+
+            bookMesh = new THREE.Mesh(geometry, material);
+            const wireframeMesh = new THREE.Mesh(geometry, wireframeMaterial);
+            bookMesh.add(wireframeMesh);
+            scene.add(bookMesh);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, isLightMode ? 0.8 : 0.5);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0xffffff, isLightMode ? 0.7 : 0.6);
+            pointLight.position.set(5, 5, 5);
+            scene.add(pointLight);
+
+            // Start animation loop
+            if (!window.animationFrameId) {
+                animate();
+            }
+        };
+
+        /** Animation loop for the 3D scene */
+        const animate = () => {
+            window.animationFrameId = requestAnimationFrame(animate);
+
+            if (bookMesh) {
+                // Gentle rotation
+                bookMesh.rotation.x += 0.005;
+                bookMesh.rotation.y += 0.005;
+            }
+
+            if (renderer) {
+                renderer.render(scene, camera);
+            }
+        };
+
+        /** Handles resizing the canvas to be fully responsive */
+        const onWindowResize = () => {
+            const container = document.getElementById('three-canvas-container');
+            if (container && camera && renderer) {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            }
+        };
+
+
+        // --- INITIALIZATION ---
+        window.onload = () => {
+            // 1. Apply theme first
+            applyStoredTheme();
+
+            // 2. Initialize 3D scene
+            if (document.getElementById('three-canvas')) {
+                initThree();
+                window.addEventListener('resize', onWindowResize);
+            }
+
+            // 3. Render book content
+            renderBookLists();
+
+            // 4. Determine initial view based on URL hash
+            const initialHash = window.location.hash.replace('#', '');
+            changeView(initialHash || 'home');
+        };
+    </script>
+</body>
+</html>
